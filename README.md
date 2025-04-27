@@ -5,7 +5,7 @@
 
 本次是生成式AI課程的第三次作業，是做 Document QA based on RAG，主要要利用開源的LLM API，然後我們要將"Public_datasets.json"或是"Private_datasets.json"中的"full_text"去轉換成embedding，然後設計出一個RAG系統，去使LLM可以從中找到回答"Question"的"evidence"，來回答"answer"。
 
-##Dataset & files
+## Dataset & files
 
 The public dataset contains 100 papers with questions, as does the private dataset.
 The only difference between private and public dataset is that there is no “answer” and “evidence” in private dataset. Since these are what we are going to predict (and retrieve)!
