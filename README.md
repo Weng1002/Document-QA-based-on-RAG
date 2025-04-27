@@ -309,16 +309,16 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 
 ### 輸出結果
->　public_submisson.json：
+>　public_submisson.json(只挑前3題)：
 
 ```
-{
-    "title": "Semi-supervised Thai Sentence Segmentation Using Local and Distant Word Representations", 
-    "answer": "They utilize unlabeled data to improve model representations by constructing prediction modules and processing the flow of unlabeled data through each module.", 
-    "evidence": [
-      "for training with unlabeled data to improve the representation. Thus, we construct both types of prediction modules for our model. The flow of unlabeled data, which is processed to obtain a prediction by each module, is shown in Fig. . The output of each prediction module is transformed into the probability distribution of each class by the softmax function and then used to calculate  , as shown"
-    ]
-  },
+  {
+      "title": "Semi-supervised Thai Sentence Segmentation Using Local and Distant Word Representations", 
+      "answer": "They utilize unlabeled data to improve model representations by constructing prediction modules and processing the flow of unlabeled data through each module.", 
+      "evidence": [
+        "for training with unlabeled data to improve the representation. Thus, we construct both types of prediction modules for our model. The flow of unlabeled data, which is processed to obtain a prediction by each module, is shown in Fig. . The output of each prediction module is transformed into the probability distribution of each class by the softmax function and then used to calculate  , as shown"
+      ]
+    },
   {
       "title": "Artificial Error Generation with Machine Translation and Syntactic Patterns",
       "answer": "English.",
@@ -353,5 +353,36 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
       "evidence": [
         "Our last component is a simple metric that uses four supervised scores for each word in the corpus. We extract these scores as follows. For a target word in the corpus, we scan through all of its contexts. In addition to the target word's polarity score (the self score), out of all the polarity scores of words occurring in the same contexts as the target word, minimum, maximum, and average scores"
       ]
-    },
+    }
 ```
+
+然後public_submisson的正解:
+```
+  "answer": [
+        "During training, the model is trained alternately with one mini-batch of labeled data and INLINEFORM0 mini-batches of unlabeled data."
+      ],
+      "evidence": [
+        "CVT BIBREF20 is a semi-supervised learning technique whose goal is to improve the model representation using a combination of labeled and unlabeled data. During training, the model is trained alternately with one mini-batch of labeled data and INLINEFORM0 mini-batches of unlabeled data.",
+        "Labeled data are input into the model to calculate the standard supervised loss for each mini-batch and the model weights are updated regularly. Meanwhile, each mini-batch of unlabeled data is selected randomly from the pool of all unlabeled data; the model computes the loss for CVT from the mini-batch of unlabeled data. This CVT loss is used to train auxiliary prediction modules, which see restricted views of the input, to match the output of the primary prediction module, which is the full model that sees all the input. Meanwhile, the auxiliary prediction modules share the same intermediate representation with the primary prediction module. Hence, the intermediate representation of the model is improved through this process.",
+        "As discussed in Section SECREF3 , CVT requires primary and auxiliary prediction modules for training with unlabeled data to improve the representation. Thus, we construct both types of prediction modules for our model. The flow of unlabeled data, which is processed to obtain a prediction by each module, is shown in Fig. . The output of each prediction module is transformed into the probability distribution of each class by the softmax function and then used to calculate INLINEFORM0 , as shown in cvtloss. DISPLAYFORM0"
+      ]
+    },
+  "answer": [
+        "English "
+      ],
+      "evidence": [
+        "We trained our error generation models on the public FCE training set BIBREF16 and used them to generate additional artificial training data. Grammatically correct text is needed as the starting point for inserting artificial errors, and we used two different sources: 1) the corrected version of the same FCE training set on which the system is trained (450K tokens), and 2) example sentences extracted from the English Vocabulary Profile (270K tokens).. While there are other text corpora that could be used (e.g., Wikipedia and news articles), our development experiments showed that keeping the writing style and vocabulary close to the target domain gives better results compared to simply including more data."
+      ]
+    },
+  "answer": [
+        "(+1 or -1), words of opposite polarities (e.g. “happy\" and “unhappy\") get far away from each other"
+      ],
+      "evidence": [
+        "Only the information concerned with the dictionary definitions are used there, discarding the polarity scores. However, when we utilise the supervised score (+1 or -1), words of opposite polarities (e.g. “happy\" and “unhappy\") get far away from each other as they are translated across coordinate regions."
+      ]
+    }
+```
+
+> ROUGE-L：0.2541
+
+
