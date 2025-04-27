@@ -27,7 +27,36 @@ The only difference between private and public dataset is that there is no “an
 
 這邊有做了三個版本的RAG實驗，然後到了最後一次才真正理解這次的作業詳細的步驟以及做法，所以接下來我簡單去解釋和區分我前面兩次實驗的哪裡不妥點。
 
+我將這次RAG作業，分成：
 
+- Step 1：資料清洗＋段落切分＋向量化
+- Step 2：建構向量檢索器（Retriever）
+- Step 3：設計 Prompt 模板 & RAG 回答模組
+- Step 4：處理 QA 任務
+- Step 5：Evaluation
+
+### ⽅法
+0、 載入必要套件
+```bash
+  import json
+  import re
+  import torch
+  from tqdm import tqdm
+  from langchain.docstore.document import Document
+  from langchain_text_splitters import RecursiveCharacterTextSplitter
+  from langchain.embeddings import HuggingFaceEmbeddings
+  from langchain.vectorstores import FAISS
+  from langchain.chains.retrieval import create_retrieval_chain
+  from langchain.chains.combine_documents import create_stuff_documents_chain
+  from langchain.chains.llm import LLMChain
+  from langchain_core.prompts import PromptTemplate
+  from langchain_groq import ChatGroq
+  from langchain.docstore.document import Document
+  
+  from sentence_transformers import SentenceTransformer, util
+```
+
+1、 資料集前處理
 
 
 
