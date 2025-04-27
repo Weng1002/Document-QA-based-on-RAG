@@ -23,6 +23,10 @@ The only difference between private and public dataset is that there is no “an
 - If there are multiple ground truth evidence, calculate the average of each generated maximum ROUGE-L value.
 - To be more specific: We will take n ground truth evidence and calculate ROUGE-L with the retrieved K documents, each n will get K scores, we take the maximum value from each n, this way we have K maximum values, then we take the average of them, which is the final score
 
+## 實作
+
+這邊有做了三個版本的RAG實驗，然後到了最後一次才真正理解這次的作業詳細的步驟以及做法，所以接下來我簡單去解釋和區分我前面兩次實驗的哪裡不妥點。
+
 
 
 
