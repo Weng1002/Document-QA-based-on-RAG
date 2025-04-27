@@ -1,4 +1,4 @@
-# Document-QA-based-on-RAG
+![image](https://github.com/user-attachments/assets/f1782612-9ad1-4df5-9885-827845a2c382)# Document-QA-based-on-RAG
 113-2 電機所 生成式AI HW3 Document QA based on RAG
 
 ## Author：國立陽明交通大學 資訊管理與財務金融學系財務金融所碩一 313707043 翁智宏
@@ -309,7 +309,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 
 ### 輸出結果
->　public_submisson.json(只挑前3題)：
+> public_submisson.json(只挑前3題)：
 
 ```
   {
@@ -385,4 +385,33 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 > ROUGE-L：0.2541
 
+> private_submisson.json(只挑前3題)：
+```
+  {
+      "title": "How Document Pre-processing affects Keyphrase Extraction Performance",
+      "answer": "***244*** \n\nThis number directly answers the question based on the context provided, which specifies that the SemEval-2010 benchmark dataset BIBREF0 is composed of 244 scientific articles.",
+      "evidence": [
+        ". This dataset is composed of documents (scientific articles) that were automatically converted from PDF format to plain text. As a result, most documents contain irrelevant pieces of text (e.g. muddled sentences, tables, equations, footnotes) that require special handling, so as to not hinder the performance of keyphrase extraction systems. In previous work, these are usually removed at the",
+        "The SemEval-2010 benchmark dataset BIBREF0 is composed of 244 scientific articles collected from the ACM Digital Library (conference and workshop papers). The input papers ranged from 6 to 8 pages and were converted from PDF format to plain text using an off-the-shelf tool. The only preprocessing applied is a systematic dehyphenation at line breaks and removal of author-assigned keyphrases."
+      ]
+    },
+    {
+      "title": "Comparative Studies of Detecting Abusive Language on Twitter",
+      "answer": "A message can be regarded as harmless on its own, but when taking previous threads into account it may be seen as abusive, and vice versa.",
+      "evidence": [
+        "The context-dependent nature of online aggression makes annotating large collections of data extremely difficult. Previously studied datasets in abusive language detection have been insufficient in size to efficiently train deep learning models. Recently, Hate and Abusive Speech on Twitter, a dataset much greater in size and reliability, has been released. However, this dataset has not been",
+        "issue BIBREF7 , BIBREF8 . The major reason of the failure in abusive language detection comes from its subjectivity and context-dependent characteristics BIBREF9 . For instance, a message can be regarded as harmless on its own, but when taking previous threads into account it may be seen as abusive, and vice versa. This aspect makes detecting abusive language extremely laborious even for human"
+      ]
+    },
+    {
+      "title": "Prepositional Attachment Disambiguation Using Bilingual Parsing and Alignments",
+      "answer": "The DD algorithm enforces agreement between two parse trees by ensuring that if two words in the English sentence (denoted by i and i') are aligned to words in a parallel Hindi sentence (denoted by j and j'), then a dependency edge between i and i' in the English parse tree corresponds to a similar dependency edge between j and j' in the Hindi parse tree, subject to the given alignments. \n\nHowever, to give a more ***concise*** and precise answer based on the provided context:\n\nIt works by ensuring dependency edges between aligned words in the English and Hindi parse trees are consistent.",
+      "evidence": [
+        "to enforce agreement between the two parse trees subject to the given alignments. Let us take a closer look at what we mean by agreement between the two parse trees. Essentially, if we have two words in the English sentence denoted by i and i', aligned to words j and j' in the parallel Hindi sentence respectively, we can expect a dependency edge between i and i' in the English parse tree to",
+        "trees for the English and Hindi sentences from the respective trained parser models as an initialsiation step. The DD algorithm then tries to enforce agreement between the two parse trees subject to the given alignments. Let us take a closer look at what we mean by agreement between the two parse trees. Essentially, if we have two words in the English sentence denoted by i and i', aligned to"
+      ]
+    }
+```
 
+*可以看出我的evidence，每個題目都會是動態調整，然後answer，會根據我剛剛的prompt設計，當有些題目的輸出，就直接是答案，不要有過多贅述。來提升correctness。*
+*
