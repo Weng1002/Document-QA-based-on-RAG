@@ -74,7 +74,8 @@ The only difference between private and public dataset is that there is no “an
 )
 ```
 *我這次使用Groq的API，然後挑選llama-4的模型來實作*
-其中的文字轉embedding模型，選擇"intfloat/e5-large-v2"，原本是挑選"BAAI/bge-large-en-v1.5"，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的GPU支援。
+
+其中的文字轉embedding模型，選擇 **intfloat/e5-large-v2**，原本是挑選**BAAI/bge-large-en-v1.5**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的GPU支援。
 
 1、 資料集前處理
 
