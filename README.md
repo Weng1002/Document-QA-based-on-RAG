@@ -25,7 +25,7 @@ The only difference between private and public dataset is that there is no “an
 
 ## 實作
 
-這邊有做了三個版本的RAG實驗，然後到了最後一次才真正理解這次的作業詳細的步驟以及做法，所以接下來我簡單去解釋和區分我前面兩次實驗的哪裡不妥點。
+這邊有做了三個版本的 RAG 實驗，然後到了最後一次才真正理解這次的作業詳細的步驟以及做法，所以接下來我簡單去解釋和區分我前面兩次實驗的哪裡不妥點。
 
 我將這次RAG作業，分成：
 
