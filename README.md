@@ -93,7 +93,7 @@ The only difference between private and public dataset is that there is no “an
 
     return text.strip()
 ```
-*將一些亂碼給清洗掉，例如分段＂：：：＂、一些研討會期刊．．．*
+*將一些亂碼給清洗掉，例如分段 ":::"、一些"研討會期刊"、Latex顯示用的標記*
 
 2、 檢索⽅法
 ```python
@@ -133,13 +133,13 @@ The only difference between private and public dataset is that there is no “an
           if "YES" in judge_result:
               break  
 ```
-*先根據""\n\n\n"去做大章節分割，然後再根據每章節使用LangChain中的"RecursiveCharacterTextSplitter"套件去切chunks，然後目前調整為最多為400個token然後其中的256個維overlap(0.64)，因為需要兩個段落必須要有overlap，不然會出現上下文不對襯現象。*
+*先根據 "\n\n\n" 去做大章節分割，然後再根據每章節使用 LangChain 中的 "RecursiveCharacterTextSplitter" 套件去切 chunks，然後目前調整為最多為 400個token 然後其中的 256個維overlap(0.64)，因為需要兩個段落必須要有 overlap，不然會出現上下文不對襯現象。*
 
-*原本是設計overlap達到0.72，但發現會造成反而每次切的chunk太少，且過多重複資訊，所以我發現overlap的比例也不能太高。*
+*原本是設計 overlap 達到 0.72，但發現會造成反而每次切的 chunk 太少，且過多重複資訊，所以我發現 overlap 的比例也不能太高。*
 
-*接著利用最常見的向量庫FAISS來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整*
+*接著利用最常見的向量庫 FAISS 來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整*
 
-*然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的evidence，來提升ROUGE-L的分數，其中我建立Retrieval工具然後使用"similarity"，來找到top-k個最相似的chunks。*
+*然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的 evidence，來提升 ROUGE-L 的分數，其中我建立 Retrieval 工具然後使用 "similarity"，來找到 top-k 個最相似的 chunks。*
 
 ```python
   sent_embed_model = SentenceTransformer("BAAI/bge-reranker-v2-m3")
@@ -169,7 +169,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
     return [s[0] for s in scored[:top_n]]
 ```
 
-*將剛剛top-k = 25最相關的chunks，最進行一次reranking的動作，這邊使用BAAI/bge-reranker-v2-m3，來計算embedding的相似度，然後再挑出top-k=15的chunks，以降低llm撈到許多吳相關的chunks。*
+*將剛剛 top-k = 25最相關的 chunks，最進行一次 reranking 的動作，這邊使用 BAAI/bge-reranker-v2-m3，來計算 embedding 的相似度，然後再挑出 top-k=15 的 chunks，以降低 llm 撈到許多吳相關的 chunks。*
 
 ```python
   # 信心判斷 prompt：請根據 evidence 判斷是否足以回答問題
@@ -187,7 +187,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
   confidence_chain = LLMChain(llm=llm, prompt=CONFIDENCE_PROMPT)
 ```
 
-*然後再使用一個新機制，為confidence_chain，讓llm去判斷這些chunks是否足夠回答這個題目的question了，不夠就繼續retrival，來實現動態 retrieval，來讓每隔題目有不同數量的evidence。*
+*然後再使用一個新機制，為 confidence_chain，讓 llm 去判斷這些 chunks 是否足夠回答這個題目的 question 了，不夠就繼續 retrival，來實現動態 retrieval，來讓每隔題目有不同數量的 evidence。*
 
 3、 Prompt 技巧
 ```python
@@ -211,9 +211,9 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
   retrieval_qa_prompt = PromptTemplate.from_template(template=CHAT_TEMPLATE_RAG)
 ```
 
-*這邊使用到的prompt engineering，先讓llm扮演角色(role)，然後使用類似CoT的方式，請模型要仔細思考剛剛得到的evience，透過這些證據去回答問題，然後要求不同只根據自身llm的能力來回答答案，要有依據的回答。然後最後要求輸出的格式，要類似 SQuAD or CoQA以及答案是關鍵字或是數字類型，直接回答就好，不要有過多的贅述。*
+*這邊使用到的 prompt engineering，先讓 llm 扮演角色(role)，然後使用類似 CoT 的方式，請模型要仔細思考剛剛得到的 evience，透過這些證據去回答問題，然後要求不同只根據自身 llm 的能力來回答答案，要有依據的回答。然後最後要求輸出的格式，要類似 SQuAD or CoQA 以及答案是關鍵字或是數字類型，直接回答就好，不要有過多的贅述。*
 
-原本我使用的Prompt：
+原本我使用的 Prompt：
 ```python
   PROMPT_TEMPLATE = """
   You are a research assistant. Answer the question strictly based on the provided context and any clues or evidence.
@@ -235,7 +235,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 """
 ```
 
-*這份prompt，就顯得太冗贅且我有實驗加入few-shot，會讓我的llm回答的方式都跟給的範例一樣，從而限縮回答的多樣性。*
+*這份 prompt，就顯得太冗贅且我有實驗加入 few-shot，會讓我的 llm 回答的方式都跟給的範例一樣，從而限縮回答的多樣性。*
 
 4、 QA回答
 ```python
@@ -264,7 +264,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 *當上述的前處理跟模型都搭建好後，就開始進入推理的階段。*
 
-*其中這邊我也有設計一個後處理機制，是讓"evidence"的句子不是只有一個單詞，去調整len，來確保至少retrival的句子相較來說比較可信。*
+*其中這邊我也有設計一個後處理機制，是讓 "evidence" 的句子不是只有一個單詞，去調整 len，來確保至少 retrival 的句子相較來說比較可信。*
 
 5、 Evaluate
 ```python
@@ -305,11 +305,11 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
   print(f"[Average ROUGE-L Evidence F1]: {average_score:.4f}")
 ```
 
-*這邊有去調整助教原本給的評估機制，去調整成適應多筆資料的方式。去平均每筆的ROUHE-L，得到一個總平均ROUHE-L。*
+*這邊有去調整助教原本給的評估機制，去調整成適應多筆資料的方式。去平均每筆的 ROUHE-L，得到一個總平均 ROUHE-L。*
 
 
 ### 輸出結果
-> public_submisson.json(只挑前3題)：
+> public_submisson.json (只挑前3題)：
 
 ```
   {
@@ -356,7 +356,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
     }
 ```
 
-然後public_submisson的正解:
+然後 public_submisson 的正解:
 ```
   "answer": [
         "During training, the model is trained alternately with one mini-batch of labeled data and INLINEFORM0 mini-batches of unlabeled data."
@@ -385,7 +385,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 > ROUGE-L：0.2541
 
-> private_submisson.json(只挑前3題)：
+> private_submisson.json (只挑前3題)：
 ```
   {
       "title": "How Document Pre-processing affects Keyphrase Extraction Performance",
@@ -413,5 +413,5 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
     }
 ```
 
-*可以看出我的evidence，每個題目都會是動態調整，然後answer，會根據我剛剛的prompt設計，當有些題目的輸出，就直接是答案，不要有過多贅述。來提升correctness。*
+*可以看出我的 evidence，每個題目都會是動態調整，然後 answer，會根據我剛剛的 prompt 設計，當有些題目的輸出，就直接是答案，不要有過多贅述。來提升 correctness。*
 *
