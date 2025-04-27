@@ -3,7 +3,7 @@
 
 ## Author：國立陽明交通大學 資訊管理與財務金融學系財務金融所碩一 313707043 翁智宏
 
-本次是生成式AI課程的第三次作業，是做 Document QA based on RAG，主要要利用開源的LLM API，然後我們要將"Public_datasets.json"或是"Private_datasets.json"中的"full_text"去轉換成embedding，然後設計出一個RAG系統，去使LLM可以從中找到回答"Question"的"evidence"，來回答"answer"。
+本次是生成式AI課程的第三次作業，是做 Document QA based on RAG，主要要利用開源的 LLM API，然後我們要將 "Public_datasets.json" 或是 "Private_datasets.json" 中的 "full_text" 去轉換成 embedding，然後設計出一個 RAG 系統，去使 LLM 可以從中找到回答 "Question" 的 "evidence"，來回答 "answer"。
 
 ## Dataset & files
 
@@ -55,7 +55,7 @@ The only difference between private and public dataset is that there is no “an
   
   from sentence_transformers import SentenceTransformer, util
 ```
-*本次使用"LangChain"幫助快速搭建RAG。*
+*本次使用 "LangChain" 幫助快速搭建 RAG。*
 
 ```python
   DATASET_PATH = "datasets/public_dataset.json" #用來evaluate的
@@ -73,9 +73,9 @@ The only difference between private and public dataset is that there is no “an
       max_tokens=256
 )
 ```
-*我這次使用Groq的API，然後挑選llama-4的模型來實作*
+*我這次使用 Groq 的 API，然後挑選 llama-4 的模型來實作*
 
-其中的文字轉embedding模型，選擇 **intfloat/e5-large-v2**，原本是挑選**BAAI/bge-large-en-v1.5**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的GPU支援。
+其中的文字轉 embedding 模型，選擇 **intfloat/e5-large-v2**，原本是挑選 **BAAI/bge-large-en-v1.5**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的 GPU 支援。
 
 1、 資料集前處理
 ```python
