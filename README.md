@@ -54,6 +54,7 @@ The only difference between private and public dataset is that there is no “an
   from langchain.docstore.document import Document
   
   from sentence_transformers import SentenceTransformer, util
+  from sentence_transformers import CrossEncoder
 ```
 *本次使用 "LangChain" 幫助快速搭建 RAG。*
 
