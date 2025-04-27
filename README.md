@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/f1782612-9ad1-4df5-9885-827845a2c382)# Document-QA-based-on-RAG
+# Document-QA-based-on-RAG
 113-2 電機所 生成式AI HW3 Document QA based on RAG
 
 ## Author：國立陽明交通大學 資訊管理與財務金融學系財務金融所碩一 313707043 翁智宏
