@@ -95,4 +95,48 @@ The only difference between private and public dataset is that there is no “an
 ```
 *將一些亂碼給清洗掉，例如分段＂：：：＂、一些研討會期刊．．．*
 
+2、 檢索⽅法
+```python
+  for demo_id, item in enumerate(tqdm(dataset, desc="QA 回答中...")):
+      title = item["title"]
+      full_text = clean_text(item["full_text"])
+      question = item["question"]
+  
+      # 拆分文件段落
+      documents = full_text.split("\n\n\n")
+      docs = [Document(page_content=doc) for doc in documents]
+  
+      # 切 chunk
+      text_splitter = RecursiveCharacterTextSplitter(
+          chunk_size=400,
+          chunk_overlap=256,
+          length_function=len,
+          add_start_index=True,
+      )
+      docs_splits = text_splitter.split_documents(docs)
+  
+      vector_store = FAISS.from_documents(docs_splits, embedding_model)
+  
+      # === 動態 retrieval（逐步 k 增加）===
+      retrieved_chunks = []
+      max_k = RETRIEVE_TOP_K
+  
+      for k in range(1, max_k + 1):
+          retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": k})
+          topk_docs = retriever.get_relevant_documents(question)
+          retrieved_chunks = [doc.page_content for doc in topk_docs]
+          # context_text = "\n".join(retrieved_chunks)
+          reranked_sentences = rerank_sentences_by_similarity(question, retrieved_chunks, top_n=15)    
+          context_text = "\n".join(reranked_sentences)
+  
+          # LLM 判斷是否足夠
+          judge_result = confidence_chain.run({"context": context_text, "question": question}).strip().upper()
+          if "YES" in judge_result:
+              break  
+```
+*先根據""\n\n\n"去做大章節分割，然後再根據每章節使用LangChain中的"RecursiveCharacterTextSplitter"套件去切chunks，然後目前調整為最多為400個token然後其中的256個維overlap(0.64)，因為需要兩個段落必須要有overlap，不然會出現上下文不對襯現象。*
+
+*原本是設計overlap達到0.72，但發現會造成反而每次切的chunk太少，且過多重複資訊，所以我發現overlap的比例也不能太高。*
+
+*接著利用最常見的向量庫FAISS來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整*
 
