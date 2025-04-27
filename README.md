@@ -237,3 +237,72 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 *這份prompt，就顯得太冗贅且我有實驗加入few-shot，會讓我的llm回答的方式都跟給的範例一樣，從而限縮回答的多樣性。*
 
+4、 QA回答
+```python
+  # === 啟用 RAG QA chain ===
+    combine_docs_chain = create_stuff_documents_chain(llm, retrieval_qa_prompt)
+    rag_qa_chain = create_retrieval_chain(
+        retriever=retriever,
+        combine_docs_chain=combine_docs_chain
+    )
+    response = rag_qa_chain.invoke({"input": question})
+    predicted_answer = response["answer"].strip()
+    
+    # 只保留不是單字的句子（整段當作一句處理）
+    predicted_evidence = []
+    for doc in response["context"]:
+        s = doc.page_content.strip()
+        if len(s.split()) >= 2:
+            predicted_evidence.append(s)
+    
+    sample_submission.append({
+        "title": title,
+        "answer": predicted_answer,
+        "evidence": predicted_evidence
+    })
+```
+
+*當上述的前處理跟模型都搭建好後，就開始進入推理的階段。*
+
+*其中這邊我也有設計一個後處理機制，是讓"evidence"的句子不是只有一個單詞，去調整len，來確保至少retrival的句子相較來說比較可信。*
+
+5、 Evaluate
+```python
+    from rouge_score import rouge_scorer
+  
+  scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
+  
+  def compute_evidence_rouge(gt_evidence, predicted_chunks):
+      """計算一筆資料中 retrieved evidence 和 ground truth 之間的 ROUGE-L 平均 f1 分數"""
+      if not predicted_chunks or not gt_evidence:
+          return 0.0
+  
+      f_scores = []
+      for pred in predicted_chunks:
+          scores = scorer.score_multi(
+              targets=gt_evidence,
+              prediction=pred,
+          )
+          f_scores.append(scores["rougeL"].fmeasure)
+      
+      return sum(f_scores) / len(f_scores)
+  
+  # 在迴圈結束後，整體計算所有筆數的 evidence score
+  total_score = 0.0
+  valid_count = 0
+  
+  for i, item in enumerate(dataset):
+      gt_evidence = item["evidence"]  # 標準答案中的 evidence sentences
+      pred_evidence = sample_submission[i]["evidence"]  # 模型取出的句子
+  
+      if pred_evidence and gt_evidence:
+          score = compute_evidence_rouge(gt_evidence, pred_evidence)
+          total_score += score
+          valid_count += 1
+  
+  average_score = total_score / valid_count if valid_count > 0 else 0.0
+  print(f"[Total]: {valid_count} samples with valid evidence")
+  print(f"[Average ROUGE-L Evidence F1]: {average_score:.4f}")
+```
+
+*這邊有去調整助教原本給的評估機制，去調整成適應多筆資料的方式。去平均每筆的ROUHE-L，得到一個總平均ROUHE-L。*
