@@ -14,6 +14,7 @@ The only difference between private and public dataset is that there is no “an
 - sample_submission.json: A sample submission file in the correct format, demonstrating expected output
 
 然後透過兩種方式的評估指標：
+
 1、 Answer correctness: Evaluated by LLM 
 - You get either 0 or 1
 
