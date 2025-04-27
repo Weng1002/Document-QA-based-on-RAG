@@ -78,9 +78,21 @@ The only difference between private and public dataset is that there is no “an
 其中的文字轉embedding模型，選擇 **intfloat/e5-large-v2**，原本是挑選**BAAI/bge-large-en-v1.5**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的GPU支援。
 
 1、 資料集前處理
+```python
+  def clean_text(text: str) -> str:
+    # 1. 移除顯示用標記
+    text = re.sub(r"(INLINEFORM\d+|DISPLAYFORM\d+|SECREF\d+|TABREF\d+|UID\d+|FIGREF\d+)", "", text)
+    
+    # 2. 移除 ::: 標記或章節分隔線
+    text = re.sub(r"\s*:::+\s*", "\n", text)
+    
+    # 3. 移除參考文獻標題
+    text = re.sub(r"(?i)\nreferences\n.*", "", text, flags=re.DOTALL)
+    text = re.sub(r"\(Table \d+\)|\(Figure \d+\)", "", text)  # 移除表格/圖表引用
+    text = re.sub(r"\n\d+\s*$", "", text, flags=re.MULTILINE)  # 移除頁碼
 
-
-
-
+    return text.strip()
+```
+*將一些亂碼給清洗掉，例如分段＂：：：＂、一些研討會期刊．．．*
 
 
