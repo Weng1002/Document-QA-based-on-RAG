@@ -65,7 +65,8 @@ The only difference between private and public dataset is that there is no “an
   # OUTPUT_PATH = "sample_submission_private.json"
   RETRIEVE_TOP_K = 25  #最多可以挑出top-k = 25個evidences
   
-  embedding_model = HuggingFaceEmbeddings(model_name="intfloat/e5-large-v2")  
+  embedding_model = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
+  # embedding_model = HuggingFaceEmbeddings(model_name="intfloat/e5-large-v2")
   llm = ChatGroq(
       model="meta-llama/llama-4-scout-17b-16e-instruct", 
       api_key="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",  
@@ -75,7 +76,7 @@ The only difference between private and public dataset is that there is no “an
 ```
 *我這次使用 Groq 的 API，然後挑選 llama-4 的模型來實作*
 
-其中的文字轉 embedding 模型，選擇 **intfloat/e5-large-v2**，原本是挑選 **BAAI/bge-large-en-v1.5**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的 GPU 支援。
+其中的文字轉 embedding 模型，選擇 **BAAI/bge-large-en-v1.5**，原本是挑選 **intfloat/e5-large-v2**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的 GPU 支援。
 
 1、 資料集前處理
 ```python
