@@ -416,4 +416,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 ```
 
 *可以看出我的 evidence，每個題目都會是動態調整，然後 answer，會根據我剛剛的 prompt 設計，當有些題目的輸出，就直接是答案，不要有過多贅述。來提升 correctness。*
-*
+
+## 發現的觀點與後話
+
+
