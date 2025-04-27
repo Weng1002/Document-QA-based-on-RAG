@@ -188,3 +188,52 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 ```
 
 *然後再使用一個新機制，為confidence_chain，讓llm去判斷這些chunks是否足夠回答這個題目的question了，不夠就繼續retrival，來實現動態 retrieval，來讓每隔題目有不同數量的evidence。*
+
+3、 Prompt 技巧
+```python
+    CHAT_TEMPLATE_RAG = (
+      """human: You are an academic QA assistant. Use the context to answer precisely.
+  Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
+  Please try to find the right keywords to answer the question based on the evidence or context you find.
+  If the answer is a name, number, or keyword, extract it directly.
+  Avoid vague or overly broad answers. Answer in a concise phrase.
+  Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
+  
+  Context:  
+  {context}
+  
+  Question:
+  {input}
+  
+  assistant:"""
+  )
+  
+  retrieval_qa_prompt = PromptTemplate.from_template(template=CHAT_TEMPLATE_RAG)
+```
+
+*這邊使用到的prompt engineering，先讓llm扮演角色(role)，然後使用類似CoT的方式，請模型要仔細思考剛剛得到的evience，透過這些證據去回答問題，然後要求不同只根據自身llm的能力來回答答案，要有依據的回答。然後最後要求輸出的格式，要類似 SQuAD or CoQA以及答案是關鍵字或是數字類型，直接回答就好，不要有過多的贅述。*
+
+原本我使用的Prompt：
+```python
+  PROMPT_TEMPLATE = """
+  You are a research assistant. Answer the question strictly based on the provided context and any clues or evidence.
+  Carefully analyze the context and extract only the most relevant information.
+  Provide a concise, direct answer to the question in a single sentence. 
+  If the context provides no useful information, try your best to infer an answer from what you have.
+  Only respond with "I don't know" if absolutely no relevant clues can be found in the context.
+  Avoid explanations, introductory phrases, or unnecessary details. No extra steps or reasoning, just the final answer.
+  Do NOT copy full sentences verbatim from the context.
+  If the answer is too cryptic and unclear, just help me answer based on known clues to minimize the chances of answering “I don't know”.
+  
+  Context:
+  {context}
+  
+  Question:
+  {question}
+  
+  Answer (no explanation):
+"""
+```
+
+*這份prompt，就顯得太冗贅且我有實驗加入few-shot，會讓我的llm回答的方式都跟給的範例一樣，從而限縮回答的多樣性。*
+
