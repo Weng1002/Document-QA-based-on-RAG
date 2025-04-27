@@ -57,6 +57,23 @@ The only difference between private and public dataset is that there is no “an
 ```
 *本次使用"LangChain"幫助快速搭建RAG。*
 
+```python
+  DATASET_PATH = "datasets/public_dataset.json" #用來evaluate的
+  OUTPUT_PATH = "sample_submission_public.json" #用來evaluate的
+  
+  # DATASET_PATH = "datasets/private_dataset.json" 
+  # OUTPUT_PATH = "sample_submission_private.json"
+  RETRIEVE_TOP_K = 25
+  
+  embedding_model = HuggingFaceEmbeddings(model_name="intfloat/e5-large-v2")
+  llm = ChatGroq(
+      model="meta-llama/llama-4-scout-17b-16e-instruct",
+      api_key="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",  
+      temperature=0.4,
+      max_tokens=256
+)
+```
+
 1、 資料集前處理
 
 
