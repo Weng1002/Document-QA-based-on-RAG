@@ -125,7 +125,6 @@ The only difference between private and public dataset is that there is no “an
           retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": k})
           topk_docs = retriever.get_relevant_documents(question)
           retrieved_chunks = [doc.page_content for doc in topk_docs]
-          # context_text = "\n".join(retrieved_chunks)
           reranked_sentences = rerank_sentences_by_similarity(question, retrieved_chunks, top_n=15)    
           context_text = "\n".join(reranked_sentences)
   
@@ -140,3 +139,52 @@ The only difference between private and public dataset is that there is no “an
 
 *接著利用最常見的向量庫FAISS來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整*
 
+*然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的evidence，來提升ROUGE-L的分數，其中我建立Retrieval工具然後使用"similarity"，來找到top-k個最相似的chunks。*
+
+```python
+  sent_embed_model = SentenceTransformer("BAAI/bge-reranker-v2-m3")
+
+def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1):
+    seen = set()
+    sentences = []
+    min_char_len = 10
+
+    for chunk in chunks:
+        for s in re.split(r'(?<=[.。!?])\s+', chunk):
+            s = s.strip()
+            
+            if (len(s.split()) >= min_word_count and
+                len(s) >= min_char_len and
+                s not in seen):
+                seen.add(s)
+                sentences.append(s)
+
+    # 計算語意相似度分數
+    query_embedding = sent_embed_model.encode(question, convert_to_tensor=True)
+    scored = [
+        (s, util.pytorch_cos_sim(query_embedding, sent_embed_model.encode(s, convert_to_tensor=True)).item())
+        for s in sentences
+    ]
+    scored.sort(key=lambda x: x[1], reverse=True)
+    return [s[0] for s in scored[:top_n]]
+```
+
+*將剛剛top-k = 25最相關的chunks，最進行一次reranking的動作，這邊使用BAAI/bge-reranker-v2-m3，來計算embedding的相似度，然後再挑出top-k=15的chunks，以降低llm撈到許多吳相關的chunks。*
+
+```python
+  # 信心判斷 prompt：請根據 evidence 判斷是否足以回答問題
+  CONFIDENCE_PROMPT = PromptTemplate.from_template("""
+  You are a QA validation model. Based on the following retrieved context and question, judge if the context provides enough information to confidently answer the question.
+  
+  Context:
+  {context}
+  
+  Question:
+  {question}
+  
+  Respond with only "YES" or "NO".
+  """)
+  confidence_chain = LLMChain(llm=llm, prompt=CONFIDENCE_PROMPT)
+```
+
+*然後再使用一個新機制，為confidence_chain，讓llm去判斷這些chunks是否足夠回答這個題目的question了，不夠就繼續retrival，來實現動態 retrieval，來讓每隔題目有不同數量的evidence。*
