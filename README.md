@@ -55,6 +55,7 @@ The only difference between private and public dataset is that there is no “an
   
   from sentence_transformers import SentenceTransformer, util
 ```
+本次使用"LangChain"幫助快速搭建RAG。
 
 1、 資料集前處理
 
