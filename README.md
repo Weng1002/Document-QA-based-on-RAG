@@ -133,7 +133,7 @@ The only difference between private and public dataset is that there is no “an
           if "YES" in judge_result:
               break  
 ```
-*先根據 "\n\n\n" 去做大章節分割，然後再根據每章節使用 LangChain 中的 "RecursiveCharacterTextSplitter" 套件去切 chunks，然後目前調整為最多為 400個token 然後其中的 256個維overlap(0.64)，因為需要兩個段落必須要有 overlap，不然會出現上下文不對襯現象。*
+*先根據 "\n\n\n" 去做大章節分割，然後再根據每章節使用 LangChain 中的 "RecursiveCharacterTextSplitter" 套件去切 chunks，然後目前調整為最多為 400個token 然後其中的 256個overlap(0.64)，因為需要兩個段落必須要有 overlap，不然會出現上下文不對襯現象。*
 
 *原本是設計 overlap 達到 0.72，但發現會造成反而每次切的 chunk 太少，且過多重複資訊，所以我發現 overlap 的比例也不能太高。*
 
@@ -142,7 +142,7 @@ The only difference between private and public dataset is that there is no “an
 *然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的 evidence，來提升 ROUGE-L 的分數，其中我建立 Retrieval 工具然後使用 "similarity"，來找到 top-k 個最相似的 chunks。*
 
 ```python
-  sent_embed_model = SentenceTransformer("BAAI/bge-reranker-v2-m3")
+  sent_embed_model = SentenceTransformer("BAAI/bge-reranker-large")
 
 def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1):
     seen = set()
@@ -169,7 +169,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
     return [s[0] for s in scored[:top_n]]
 ```
 
-*將剛剛 top-k = 25最相關的 chunks，最進行一次 reranking 的動作，這邊使用 BAAI/bge-reranker-v2-m3，來計算 embedding 的相似度，然後再挑出 top-k=15 的 chunks，以降低 llm 撈到許多吳相關的 chunks。*
+*將剛剛 top-k = 25最相關的 chunks，最進行一次 reranking 的動作，這邊使用 BAAI/bge-reranker-large，來計算 embedding 的相似度，然後再挑出 top-k=15 的 chunks，以降低 llm 撈到許多吳相關的 chunks。*
 
 ```python
   # 信心判斷 prompt：請根據 evidence 判斷是否足以回答問題
