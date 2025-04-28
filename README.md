@@ -421,13 +421,75 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 ## 發現的觀點與後話
 
-1. 輸出分析
+### 輸出分析
   從我的private輸出的結果可以發現，我的 "answer"，都會再去額外多一些解釋性的句子，但因為 ROUGE-L 主要是看句子的 Overlap，所以我這邊就盡量不要讓輸出只有一個單詞，能有一些解釋性句子更好，我的目的是希望能讓指標更高一點。
 
   然後我也發現我有一些 "evidence" 都還是會 retrival 到一些無關的句子，原本自己認為這部分可以透過 re-retrival 去再次針對第一次所找到的 "evidence" 再去處理，但可能是我設計不良，反而實作這機制會讓我的 ROUGE-L 降低，所以最後還是沒有實現這機制，但取而代之就是，去提升 Chunks 的大小，來讓 LLM 能更讀得懂段落，來找到更相近的 "evidence" ，且也搭配更強大的 Embedding 模型，來去彌補這部分的弱勢，還有搭配動態挑選 top-k 個句子，發現使用這個機制，會讓我的指標表現提升5-6%，影響很大！
   
-3. 與其他版本的差異
+### 與其他版本的差異
+  然後我有提到我有做三個版本，最後一個版本才有正常的成功，是因為我第一份發現我完全搞錯這次的作業方向，我把 Public 當成是要用在 Private 中找相關答案的資料庫，導致我看我前期的輸出都很怪，感覺都沒有跟題目很相近，於是第一個版本的 code，用了許多不同的機制像是：
+```
+    # 按論文結構分割
+def split_by_sections(text):
+    sections = re.split(
+        r'<SECTION>|(?=Abstract\n|Introduction\n|Related Work\n|Background\n|Data\n|Approach\n|Methodology\n|Evaluation\n|Experiments\n|Conclusion\n|Acknowledgements\n|(?:\w+\s*:::\s*.+\n))',
+        text
+    )
+    return [s.strip() for s in sections if s.strip()]
+```
 
-   
-5. 省思
+我去根據論文中的更細的章節切割，但發現這樣會導致往往答案都在 "abstract" 或是 "introduction" 的後半部分，都被遺忘掉。
+
+還設計了，二次驗證答案的機制：
+```
+  def validate_answer(data):
+      issues = []
+      for item in data:
+          full_text = clean_text(item['full_text'])  # 清理 full_text
+          answers = item['answer']
+          evidence = item['evidence']
+          
+          # 檢查答案
+          for ans in answers:
+              cleaned_ans = clean_text(ans)
+              if cleaned_ans not in full_text and cleaned_ans.lower() not in full_text.lower():
+                  issues.append(f"Answer '{ans}' not found in full_text for title: {item['title']}")
+          
+          # 檢查證據
+          for ev in evidence:
+              cleaned_ev = clean_text(ev)
+              ev_words = set(cleaned_ev.lower().split())
+              full_text_words = set(full_text.lower().split())
+              overlap = len(ev_words & full_text_words) / len(ev_words) if ev_words else 0
+              if overlap < 0.8:
+                  issues.append(f"Evidence '{ev}' not found or insufficient overlap ({overlap:.2f}) in full_text for title: {item['title']}")
+      
+      return issues
+```
+
+拿輸出後的答案，再去給 llm 找答案有無出現在 "Question"、"evidence" 中，但因為這邊我搞錯任務方向，導致這機制的表現也很混亂，最後我也就捨棄這方法。
+
+最後還有一種
+```
+  def is_how_many_question(q):
+      return q.lower().strip().startswith("how many")
+  
+  if is_how_many_question(question):
+          # 處理 'How many' 類問題，返回相關的數字答案
+          answer_text = f"There are {len(public_data)} articles in the dataset."
+          qa_result = qa_chain.invoke({"query": question})
+          evidence_list = [doc.page_content for doc in qa_result.get("source_documents", [])]
+      else:
+          qa_result = qa_chain.invoke({"query": question})
+          cot_output = qa_result.get("answer") or qa_result.get("result") or "I don't know"
+          answer_text = extract_final_answer(cot_output)
+          evidence_list = [doc.page_content for doc in qa_result.get("source_documents", [])]
+```
+
+去針對 "計數" 的題型處理，因為我原本以為這份作業的輸出要像 public_dataset.json 一樣，答案用 list 來包裝，所以我就強制去調整判斷，當遇到計數題型，直接輸出看到的數字就是這題的答案，但這機制後面實驗看來，也是很荒謬，因為第二、第三個實驗得知，只需要將 llm 的 prompt 設計好，以及 retrival 機制整好就可以避免上述的問題了。
+
+然後第二個實驗，我就知道搞錯方向，於是我參考助教給予的那份 rag-v2.ipynb 去修改，然後也將輸出丟進去 evaluation 中測試，但發現還是不太好，最後測試了幾次，最終在第三個版本中終於發現是因為，我原先是將所有的 full_text 都做成 FAISS 向量庫，導致每個題目在找對應的 evidence 都要從很龐大的向量庫中去取得對應的關鍵字，造成準確度以及冗言贅字增加，於是我的最終版就將這部分改成，每筆資料都獨立轉成 FAISS 向量庫，這樣做雖然後增加運算時間但也讓我的表現提升了很多%！
+
+### 省思
+
 
