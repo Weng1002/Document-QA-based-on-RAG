@@ -109,8 +109,8 @@ The only difference between private and public dataset is that there is no “an
   
       # 切 chunk
       text_splitter = RecursiveCharacterTextSplitter(
-          chunk_size=400,
-          chunk_overlap=256,
+          chunk_size=800,
+          chunk_overlap=320,
           length_function=len,
           add_start_index=True,
       )
@@ -126,7 +126,7 @@ The only difference between private and public dataset is that there is no “an
           retriever = vector_store.as_retriever(search_type="similarity", search_kwargs={"k": k})
           topk_docs = retriever.get_relevant_documents(question)
           retrieved_chunks = [doc.page_content for doc in topk_docs]
-          reranked_sentences = rerank_sentences_by_similarity(question, retrieved_chunks, top_n=15)    
+          reranked_sentences = rerank_sentences_by_similarity(question, retrieved_chunks, top_n=20)    
           context_text = "\n".join(reranked_sentences)
   
           # LLM 判斷是否足夠
@@ -134,7 +134,7 @@ The only difference between private and public dataset is that there is no “an
           if "YES" in judge_result:
               break  
 ```
-*先根據 "\n\n\n" 去做大章節分割，然後再根據每章節使用 LangChain 中的 "RecursiveCharacterTextSplitter" 套件去切 chunks，然後目前調整為最多為 400個token 然後其中的 256個overlap(0.64)，因為需要兩個段落必須要有 overlap，不然會出現上下文不對襯現象。*
+*先根據 "\n\n\n" 去做大章節分割，然後再根據每章節使用 LangChain 中的 "RecursiveCharacterTextSplitter" 套件去切 chunks，然後目前調整為最多為 800個token 然後其中的 320個overlap(0.4)，因為需要兩個段落必須要有 overlap，不然會出現上下文不對襯現象。*
 
 *原本是設計 overlap 達到 0.72，但發現會造成反而每次切的 chunk 太少，且過多重複資訊，所以我發現 overlap 的比例也不能太高。*
 
@@ -145,7 +145,7 @@ The only difference between private and public dataset is that there is no “an
 ```python
   sent_embed_model = SentenceTransformer("BAAI/bge-reranker-large")
 
-def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1):
+def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1):
     seen = set()
     sentences = []
     min_char_len = 10
@@ -192,15 +192,18 @@ def rerank_sentences_by_similarity(question, chunks, top_n=15, min_word_count=1)
 
 3、 Prompt 技巧
 ```python
-    CHAT_TEMPLATE_RAG = (
-      """human: You are an academic QA assistant. Use the context to answer precisely.
-  Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
-  Please try to find the right keywords to answer the question based on the evidence or context you find.
-  If the answer is a name, number, or keyword, extract it directly.
-  Avoid vague or overly broad answers. Answer in a concise phrase.
-  Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
+      CHAT_TEMPLATE_RAG = (
+  """human: You are an academic QA assistant. Use the provided context to answer the question precisely and accurately.
+  Think carefully and step-by-step. Extract the key information needed to answer, and if necessary, explain briefly in 1–3 concise sentences.
   
-  Context:  
+  Requirements:
+  - Answer directly based on the context and evidence.
+  - Focus on facts, numbers, names, keywords; provide explanations if they are essential.
+  - Prefer short complete sentences over single words or phrases.
+  - Avoid vague, broad, or speculative answers. Do not fabricate.
+  - Structure your answer in a clear, academic writing style, similar to SQuAD or academic QA datasets.
+  
+  Context:
   {context}
   
   Question:
