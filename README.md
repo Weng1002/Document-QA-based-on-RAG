@@ -193,24 +193,21 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 3、 Prompt 技巧
 ```python
       CHAT_TEMPLATE_RAG = (
-  """human: You are an academic QA assistant. Use the provided context to answer the question precisely and accurately.
-  Think carefully and step-by-step. Extract the key information needed to answer, and if necessary, explain briefly in 1–3 concise sentences.
-  
-  Requirements:
-  - Answer directly based on the context and evidence.
-  - Focus on facts, numbers, names, keywords; provide explanations if they are essential.
-  - Prefer short complete sentences over single words or phrases.
-  - Avoid vague, broad, or speculative answers. Do not fabricate.
-  - Structure your answer in a clear, academic writing style, similar to SQuAD or academic QA datasets.
-  
-  Context:
-  {context}
-  
-  Question:
-  {input}
-  
-  assistant:"""
-  )
+    """human: You are an academic QA assistant. Use the context to answer precisely.
+Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
+Please try to find the right keywords to answer the question based on the evidence or context you find.
+If the answer is a name, number, or keyword, extract it directly.
+Avoid vague or overly broad answers. Answer in a concise phrase.
+Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
+
+Context:  
+{context}
+
+Question:
+{input}
+
+assistant:"""
+)
   
   retrieval_qa_prompt = PromptTemplate.from_template(template=CHAT_TEMPLATE_RAG)
 ```
@@ -430,12 +427,12 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
   然後我有提到我有做三個版本，最後一個版本才有正常的成功，是因為我第一份發現我完全搞錯這次的作業方向，我把 Public 當成是要用在 Private 中找相關答案的資料庫，導致我看我前期的輸出都很怪，感覺都沒有跟題目很相近，於是第一個版本的 code，用了許多不同的機制像是：
 ```
     # 按論文結構分割
-def split_by_sections(text):
-    sections = re.split(
-        r'<SECTION>|(?=Abstract\n|Introduction\n|Related Work\n|Background\n|Data\n|Approach\n|Methodology\n|Evaluation\n|Experiments\n|Conclusion\n|Acknowledgements\n|(?:\w+\s*:::\s*.+\n))',
-        text
-    )
-    return [s.strip() for s in sections if s.strip()]
+    def split_by_sections(text):
+      sections = re.split(
+          r'<SECTION>|(?=Abstract\n|Introduction\n|Related Work\n|Background\n|Data\n|Approach\n|Methodology\n|Evaluation\n|Experiments\n|Conclusion\n|Acknowledgements\n|(?:\w+\s*:::\s*.+\n))',
+          text
+      )
+      return [s.strip() for s in sections if s.strip()]
 ```
 
 我去根據論文中的更細的章節切割，但發現這樣會導致往往答案都在 "abstract" 或是 "introduction" 的後半部分，都被遺忘掉。
