@@ -421,4 +421,13 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 ## 發現的觀點與後話
 
+1. 輸出分析
+  從我的private輸出的結果可以發現，我的 "answer"，都會再去額外多一些解釋性的句子，但因為 ROUGE-L 主要是看句子的 Overlap，所以我這邊就盡量不要讓輸出只有一個單詞，能有一些解釋性句子更好，我的目的是希望能讓指標更高一點。
+
+  然後我也發現我有一些 "evidence" 都還是會 retrival 到一些無關的句子，原本自己認為這部分可以透過 re-retrival 去再次針對第一次所找到的 "evidence" 再去處理，但可能是我設計不良，反而實作這機制會讓我的 ROUGE-L 降低，所以最後還是沒有實現這機制，但取而代之就是，去提升 Chunks 的大小，來讓 LLM 能更讀得懂段落，來找到更相近的 "evidence" ，且也搭配更強大的 Embedding 模型，來去彌補這部分的弱勢，還有搭配動態挑選 top-k 個句子，發現使用這個機制，會讓我的指標表現提升5-6%，影響很大！
+  
+3. 與其他版本的差異
+
+   
+5. 省思
 
