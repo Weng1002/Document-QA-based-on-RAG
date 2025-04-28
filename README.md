@@ -54,7 +54,6 @@ The only difference between private and public dataset is that there is no “an
   from langchain.docstore.document import Document
   
   from sentence_transformers import SentenceTransformer, util
-  from sentence_transformers import CrossEncoder
 ```
 *本次使用 "LangChain" 幫助快速搭建 RAG。*
 
@@ -64,12 +63,12 @@ The only difference between private and public dataset is that there is no “an
   
   # DATASET_PATH = "datasets/private_dataset.json" 
   # OUTPUT_PATH = "sample_submission_private.json"
-  RETRIEVE_TOP_K = 25  #最多可以挑出top-k = 25個evidences
+  RETRIEVE_TOP_K = 30  #最多可以挑出top-k = 30個evidences
   
   embedding_model = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
   # embedding_model = HuggingFaceEmbeddings(model_name="intfloat/e5-large-v2")
   llm = ChatGroq(
-      model="meta-llama/llama-4-scout-17b-16e-instruct", 
+      model="meta-llama/llama-4-maverick-17b-128e-instruct",
       api_key="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",  
       temperature=0.4,
       max_tokens=256
