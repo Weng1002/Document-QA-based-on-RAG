@@ -422,7 +422,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 ### 輸出圖表呈現
 
-| 0415-benchmark |  0421-benchmark |  0426-benchmark |  0428-benchmark |
+| - | 0415-benchmark |  0421-benchmark |  0426-benchmark |  0428-benchmark |
 |:-----:|:-----:|:-----:|:-----:|:-----:|
 | ROUGE-L | 0.0883 | 0.1189 | 0.2159 | 0.2310 |
 | Correctness | 0.02 | 0 | 0.34 | 0.38 |
