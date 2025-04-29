@@ -68,13 +68,13 @@ The only difference between private and public dataset is that there is no “an
   embedding_model = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
   # embedding_model = HuggingFaceEmbeddings(model_name="intfloat/e5-large-v2")
   llm = ChatGroq(
-      model="meta-llama/llama-4-maverick-17b-128e-instruct",
+      model="llama-3.1-8b-instant",
       api_key="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",  
       temperature=0.4,
       max_tokens=256
 )
 ```
-*我這次使用 Groq 的 API，然後挑選 llama-4 的模型來實作*
+*我這次使用 Groq 的 API，然後挑選 llama-3 的模型來實作*
 
 其中的文字轉 embedding 模型，選擇 **BAAI/bge-large-en-v1.5**，原本是挑選 **intfloat/e5-large-v2**，但前者在長文本的轉換任務(尤其英文)更為強大，但也需要更大的 GPU 支援。
 
@@ -501,5 +501,5 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 然後第二個實驗，我就知道搞錯方向，於是我參考助教給予的那份 rag-v2.ipynb 去修改，然後也將輸出丟進去 evaluation 中測試，但發現還是不太好，最後測試了幾次，最終在第三個版本中終於發現是因為，我原先是將所有的 full_text 都做成 FAISS 向量庫，導致每個題目在找對應的 evidence 都要從很龐大的向量庫中去取得對應的關鍵字，造成準確度以及冗言贅字增加，於是我的最終版就將這部分改成，每筆資料都獨立轉成 FAISS 向量庫，這樣做雖然後增加運算時間但也讓我的表現提升了很多%！
 
 ### 省思
-最後我透過這次的任務更了解到了，包含前面兩個任務(Prompt Engineering、Paper-Abstract-Generation)的綜合體 RAG 機制，這次的任次讓我感覺我對於一套很基礎的 RAG 的整套流程該如何設計、要如何做好資料前處理、讓 LLM 可以更聽話等等的操作，都在這次的實驗中體驗到了！所以在最後的成績兩者指標都有超過 Strong 感到很滿意！唯一的可惜是，我挑的模型參數量比較大，達到 17B，在這部分可能還有更多的調整空間去探討！
+最後我透過這次的任務更了解到了，包含前面兩個任務(Prompt Engineering、Paper-Abstract-Generation)的綜合體 RAG 機制，這次的任次讓我感覺我對於一套很基礎的 RAG 的整套流程該如何設計、要如何做好資料前處理、讓 LLM 可以更聽話等等的操作，都在這次的實驗中體驗到了！所以在最後的成績兩者指標都有超過 Strong 感到很滿意！唯一的可惜是，我挑的模型參數量比較大，達到 8B，在這部分可能還有更多的調整空間去探討！
 
