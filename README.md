@@ -197,22 +197,22 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 3、 Prompt 技巧
 ```python
-        CHAT_TEMPLATE_RAG = (
-      """human: You are an academic QA assistant. Use the context to answer precisely.
-  Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
-  Please try to find the right keywords to answer the question based on the evidence or context you find.
-  If the answer is a name, number, or keyword, extract it directly.
-  Or write a short, complete answer (1–3 sentences) based only on the context.
-  Avoid vague or overly broad answers. Answer in a concise phrase.
-  Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
-  
-  Context:  
-  {context}
-  
-  Question:
-  {input}
-  
-  assistant:"""
+  CHAT_TEMPLATE_RAG = (
+    """human: You are an academic QA assistant. Use the context to answer precisely.
+    Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
+    Please try to find the right keywords to answer the question based on the evidence or context you find.
+    If the answer is a name, number, or keyword, extract it directly.
+    Or write a short, complete answer (1–3 sentences) based only on the context.
+    Avoid vague or overly broad answers. Answer in a concise phrase.
+    Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
+    
+    Context:  
+    {context}
+    
+    Question:
+    {input}
+    
+    assistant:"""
 )
   
   retrieval_qa_prompt = PromptTemplate.from_template(template=CHAT_TEMPLATE_RAG)
