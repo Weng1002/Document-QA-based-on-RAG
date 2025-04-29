@@ -143,7 +143,7 @@ The only difference between private and public dataset is that there is no “an
 *然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的 evidence，來提升 ROUGE-L 的分數，其中我建立 Retrieval 工具然後使用 "similarity"，來找到 top-k 個最相似的 chunks。*
 
 ```python
-  sent_embed_model = SentenceTransformer("BAAI/bge-reranker-large")
+sent_embed_model = SentenceTransformer("BAAI/bge-reranker-large")
 
 def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1):
     seen = set()
