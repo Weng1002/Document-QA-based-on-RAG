@@ -170,7 +170,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
     return [s[0] for s in scored[:top_n]]
 ```
 
-*將剛剛 top-k = 25最相關的 chunks，最進行一次 reranking 的動作，這邊使用 BAAI/bge-reranker-large，來計算 embedding 的相似度，然後再挑出 top-k=15 的 chunks，以降低 llm 撈到許多吳相關的 chunks。*
+*將剛剛 top-k = 30 最相關的 chunks，最進行一次 reranking 的動作，這邊使用 BAAI/bge-reranker-large，來計算 embedding 的相似度，然後再挑出 top-k=20 的 chunks，以降低 llm 撈到許多吳相關的 chunks。*
 
 ```python
   # 信心判斷 prompt：請根據 evidence 判斷是否足以回答問題
@@ -193,7 +193,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
   confidence_chain = LLMChain(llm=llm, prompt=CONFIDENCE_PROMPT)
 ```
 
-*然後再使用一個新機制，為 confidence_chain，讓 llm 去判斷這些 chunks 是否足夠回答這個題目的 question 了，不夠就繼續 retrival，來實現動態 retrieval，來讓每隔題目有不同數量的 evidence。*
+*然後再使用一個新機制，為 confidence_chain，讓 llm 去判斷這些 chunks 是否足夠回答這個題目的 question 了，不夠就繼續 retrieval，來實現動態 retrieval，來讓每隔題目有不同數量的 evidence。*
 
 3、 Prompt 技巧
 ```python
@@ -271,7 +271,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 *當上述的前處理跟模型都搭建好後，就開始進入推理的階段。*
 
-*其中這邊我也有設計一個後處理機制，是讓 "evidence" 的句子不是只有一個單詞，去調整 len，來確保至少 retrival 的句子相較來說比較可信。*
+*其中這邊我也有設計一個後處理機制，是讓 "evidence" 的句子不是只有一個單詞，去調整 len，來確保至少 retrieval 的句子相較來說比較可信。*
 
 5、 Evaluate
 ```python
@@ -434,7 +434,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 ### 輸出分析
   從我的private輸出的結果可以發現，我的 "answer"，都會再去額外多一些解釋性的句子，但因為 ROUGE-L 主要是看句子的 Overlap，所以我這邊就盡量不要讓輸出只有一個單詞，能有一些解釋性句子更好，我的目的是希望能讓指標更高一點。
 
-  然後我也發現我有一些 "evidence" 都還是會 retrival 到一些無關的句子，原本自己認為這部分可以透過 re-retrival 去再次針對第一次所找到的 "evidence" 再去處理，但可能是我設計不良，反而實作這機制會讓我的 ROUGE-L 降低，所以最後還是沒有實現這機制，但取而代之就是，去提升 Chunks 的大小，來讓 LLM 能更讀得懂段落，來找到更相近的 "evidence" ，且也搭配更強大的 Embedding 模型，來去彌補這部分的弱勢，還有搭配動態挑選 top-k 個句子，發現使用這個機制，會讓我的指標表現提升5-6%，影響很大！
+  然後我也發現我有一些 "evidence" 都還是會 retrieval 到一些無關的句子，原本自己認為這部分可以透過 re-retrieval 去再次針對第一次所找到的 "evidence" 再去處理，但可能是我設計不良，反而實作這機制會讓我的 ROUGE-L 降低，所以最後還是沒有實現這機制，但取而代之就是，去提升 Chunks 的大小，來讓 LLM 能更讀得懂段落，來找到更相近的 "evidence" ，且也搭配更強大的 Embedding 模型，來去彌補這部分的弱勢，還有搭配動態挑選 top-k 個句子，發現使用這個機制，會讓我的指標表現提升5-6%，影響很大！
   
 ### 與其他版本的差異
   然後我有提到我有做三個版本，最後一個版本才有正常的成功，是因為我第一份發現我完全搞錯這次的作業方向，我把 Public 當成是要用在 Private 中找相關答案的資料庫，導致我看我前期的輸出都很怪，感覺都沒有跟題目很相近，於是第一個版本的 code，用了許多不同的機制像是：
@@ -496,7 +496,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
           evidence_list = [doc.page_content for doc in qa_result.get("source_documents", [])]
 ```
 
-去針對 "計數" 的題型處理，因為我原本以為這份作業的輸出要像 public_dataset.json 一樣，答案用 list 來包裝，所以我就強制去調整判斷，當遇到計數題型，直接輸出看到的數字就是這題的答案，但這機制後面實驗看來，也是很荒謬，因為第二、第三個實驗得知，只需要將 llm 的 prompt 設計好，以及 retrival 機制整好就可以避免上述的問題了。
+去針對 "計數" 的題型處理，因為我原本以為這份作業的輸出要像 public_dataset.json 一樣，答案用 list 來包裝，所以我就強制去調整判斷，當遇到計數題型，直接輸出看到的數字就是這題的答案，但這機制後面實驗看來，也是很荒謬，因為第二、第三個實驗得知，只需要將 llm 的 prompt 設計好，以及 retrieval 機制整好就可以避免上述的問題了。
 
 然後第二個實驗，我就知道搞錯方向，於是我參考助教給予的那份 rag-v2.ipynb 去修改，然後也將輸出丟進去 evaluation 中測試，但發現還是不太好，最後測試了幾次，最終在第三個版本中終於發現是因為，我原先是將所有的 full_text 都做成 FAISS 向量庫，導致每個題目在找對應的 evidence 都要從很龐大的向量庫中去取得對應的關鍵字，造成準確度以及冗言贅字增加，於是我的最終版就將這部分改成，每筆資料都獨立轉成 FAISS 向量庫，這樣做雖然後增加運算時間但也讓我的表現提升了很多%！
 
