@@ -275,7 +275,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 5、 Evaluate
 ```python
-    from rouge_score import rouge_scorer
+  from rouge_score import rouge_scorer
   
   scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
   
