@@ -420,6 +420,13 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 *可以看出我的 evidence，每個題目都會是動態調整，然後 answer，會根據我剛剛的 prompt 設計，當有些題目的輸出，就直接是答案，或是設計多一些解釋性回答，因為 llama-4，比較擅長回答一段話，也可以讓我這個回答更能被判斷成 correctness，來提升 correctness。*
 
+### 輸出圖表呈現
+
+| 0415-benchmark |  0421-benchmark |  0426-benchmark |
+|:-----|:-----:|------:|
+| 0.0883 | 0.1189 | 0.2159 |
+| 0.02 | 0 | 0.34 |
+
 ## 發現的觀點與後話
 
 ### 輸出分析
