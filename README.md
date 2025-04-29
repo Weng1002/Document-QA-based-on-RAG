@@ -138,7 +138,7 @@ The only difference between private and public dataset is that there is no “an
 
 *原本是設計 overlap 達到 0.72，但發現會造成反而每次切的 chunk 太少，且過多重複資訊，所以我發現 overlap 的比例也不能太高。*
 
-*接著利用最常見的向量庫 FAISS 來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整*
+*接著利用最常見的向量庫 FAISS 來製作，但這邊也有嘗試過使用ScaNN來實作，但後者的實作速度偏慢，且比較適合應用在超大量規模任務上，所以前者的優勢就比較明顯，可以適用我們這次的任務，且有更多的可控性可以去調整。*
 
 *然後這邊我自己多了個新的機制:動態 retrieval，主要是去動態地調整每一筆資料中所獲取的 evidence，來提升 ROUGE-L 的分數，其中我建立 Retrieval 工具然後使用 "similarity"，來找到 top-k 個最相似的 chunks。*
 
