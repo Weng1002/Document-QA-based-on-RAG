@@ -175,7 +175,11 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 ```python
   # 信心判斷 prompt：請根據 evidence 判斷是否足以回答問題
   CONFIDENCE_PROMPT = PromptTemplate.from_template("""
-  You are a QA validation model. Based on the following retrieved context and question, judge if the context provides enough information to confidently answer the question.
+  You are a QA validation model. Given the retrieved context and the question, determine if the context contains enough information to answer the question confidently and correctly.
+  
+  Criteria:
+  - If the context covers more than 70% of the necessary information to answer, respond "YES".
+  - If the information is clearly incomplete or unrelated, respond "NO".
   
   Context:
   {context}
@@ -185,6 +189,7 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
   
   Respond with only "YES" or "NO".
   """)
+  
   confidence_chain = LLMChain(llm=llm, prompt=CONFIDENCE_PROMPT)
 ```
 
@@ -192,21 +197,22 @@ def rerank_sentences_by_similarity(question, chunks, top_n=20, min_word_count=1)
 
 3、 Prompt 技巧
 ```python
-      CHAT_TEMPLATE_RAG = (
-    """human: You are an academic QA assistant. Use the context to answer precisely.
-Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
-Please try to find the right keywords to answer the question based on the evidence or context you find.
-If the answer is a name, number, or keyword, extract it directly.
-Avoid vague or overly broad answers. Answer in a concise phrase.
-Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
-
-Context:  
-{context}
-
-Question:
-{input}
-
-assistant:"""
+        CHAT_TEMPLATE_RAG = (
+      """human: You are an academic QA assistant. Use the context to answer precisely.
+  Please think about the question step by step, and then answer a ***concise***, precise answer based on the context and evidence.
+  Please try to find the right keywords to answer the question based on the evidence or context you find.
+  If the answer is a name, number, or keyword, extract it directly.
+  Or write a short, complete answer (1–3 sentences) based only on the context.
+  Avoid vague or overly broad answers. Answer in a concise phrase.
+  Format your answer similarly to human-written academic answers from datasets like SQuAD or CoQA.
+  
+  Context:  
+  {context}
+  
+  Question:
+  {input}
+  
+  assistant:"""
 )
   
   retrieval_qa_prompt = PromptTemplate.from_template(template=CHAT_TEMPLATE_RAG)
